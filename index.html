@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="kk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Арифметикалық прогрессия викторинасы</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        math: {
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            accent: '#3b82f6',
+                            accentHover: '#2563eb',
+                            correct: '#10b981',
+                            wrong: '#ef4444'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax for rendering LaTeX expressions cleanly -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@500;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-option {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.3);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/70 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xl">
+                    <i class="fa-solid font-mono">a_n</i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-slate-100">Арифметикалық прогрессия</h1>
+                    <p class="text-xs text-slate-400">Формулалар, қосынды және логикалық есептер</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-lg px-3 py-1.5 flex items-center space-x-2">
+                    <i class="fa-regular fa-clock text-blue-400 text-sm"></i>
+                    <span id="timer" class="font-mono font-medium text-slate-200">00:00</span>
+                </div>
+                <button id="reset-btn" class="text-slate-400 hover:text-slate-200 transition-colors p-2 text-sm" title="Қайта бастау">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Quiz Area -->
+    <main class="flex-grow flex items-center justify-center p-4 py-8">
+        <div class="w-full max-w-3xl">
+
+            <!-- START SCREEN -->
+            <div id="start-screen" class="glass-panel rounded-2xl p-6 md:p-10 text-center space-y-6 shadow-2xl">
+                <div class="w-20 h-20 bg-blue-600/20 text-blue-400 rounded-3xl flex items-center justify-center mx-auto border border-blue-500/30 text-3xl mb-2">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                </div>
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-bold text-white">Прогрессия логикасын меңгердің бе?</h2>
+                    <p class="text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
+                        Викторина 20 есептен тұрады: $a_1$, $d$, $a_n$, алғашқы $S_n$ қосындысы және күнделікті оқиғаларға негізделген логикалық сұрақтар.
+                    </p>
+                </div>
+
+                <!-- Rules Badge Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto text-left text-xs">
+                    <div class="bg-slate-800/50 border border-slate-700/50 p-3 rounded-xl flex items-start space-x-2.5">
+                        <i class="fa-solid fa-list-check text-blue-400 mt-0.5"></i>
+                        <div>
+                            <p class="font-semibold text-slate-200">20 Сұрақ</p>
+                            <p class="text-slate-400">Есептеу және логикалық есептер</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 border border-slate-700/50 p-3 rounded-xl flex items-start space-x-2.5">
+                        <i class="fa-solid fa-calculator text-emerald-400 mt-0.5"></i>
+                        <div>
+                            <p class="font-semibold text-slate-200">Ұпай жүйесі</p>
+                            <p class="text-slate-400">Дұрыс: +1 | Қате: -1 ұпай</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800/50 border border-slate-700/50 p-3 rounded-xl flex items-start space-x-2.5">
+                        <i class="fa-solid fa-book-open text-amber-400 mt-0.5"></i>
+                        <div>
+                            <p class="font-semibold text-slate-200">Шешу жолы</p>
+                            <p class="text-slate-400">Әр сұрақта толық түсіндірме</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="start-quiz-btn" class="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                    Викторинаны бастау <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+
+            <!-- QUIZ CONTAINER -->
+            <div id="quiz-container" class="hidden space-y-6">
+
+                <!-- Score and Progress Bar -->
+                <div class="glass-panel rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                    <!-- Progress counter -->
+                    <div class="flex items-center space-x-3">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Сұрақ</span>
+                        <span class="text-lg font-bold text-blue-400"><span id="current-question-num">1</span> <span class="text-slate-500 text-sm">/ 20</span></span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="flex-grow max-w-md bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700/50">
+                        <div id="progress-bar" class="bg-blue-500 h-full rounded-full transition-all duration-300" style="width: 5%;"></div>
+                    </div>
+
+                    <!-- Score display -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ұпай:</span>
+                        <span id="score-display" class="font-mono text-xl font-bold text-emerald-400">0</span>
+                    </div>
+                </div>
+
+                <!-- Equation Box -->
+                <div class="glass-panel rounded-2xl p-6 md:p-8 text-center space-y-4 shadow-xl border-t-2 border-t-blue-500/50">
+                    <span id="question-category" class="text-xs font-semibold uppercase tracking-widest text-blue-400 bg-blue-950/60 border border-blue-800/50 px-3 py-1 rounded-full">Тақырыптық сұрақ</span>
+                    <div class="py-2">
+                        <div id="equation-display" class="text-base sm:text-xl font-medium tracking-wide text-white py-2 leading-relaxed">
+                            <!-- Question inserted dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Answer Options Grid -->
+                <div id="options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <!-- Option Buttons inserted by JavaScript -->
+                </div>
+
+                <!-- EXPLANATION & NEXT STEP PANEL (Shown after answering) -->
+                <div id="explanation-box" class="hidden glass-panel rounded-2xl p-6 border-l-4 transition-all space-y-4 animate-fade-in">
+                    <div class="flex items-center justify-between">
+                        <div id="feedback-badge" class="flex items-center space-x-2 font-bold text-lg">
+                            <!-- Feedback icon and text -->
+                        </div>
+                    </div>
+
+                    <!-- Step by step math breakdown -->
+                    <div class="bg-slate-900/80 rounded-xl p-4 space-y-3 border border-slate-800 text-sm text-slate-200">
+                        <h4 class="font-sans font-bold text-blue-400 text-xs tracking-wider uppercase border-b border-slate-800 pb-2 flex items-center space-x-1.5">
+                            <i class="fa-solid fa-list-ol text-blue-400"></i>
+                            <span>Қадамдық шешу жолы:</span>
+                        </h4>
+                        
+                        <div id="step-formula" class="font-mono text-slate-300"></div>
+                        <div id="step-calculation" class="font-mono text-slate-300"></div>
+                        <div id="step-explanation" class="text-slate-300 leading-relaxed text-xs sm:text-sm"></div>
+                        <div id="step-roots" class="text-emerald-300 pt-1 font-semibold font-mono"></div>
+                    </div>
+
+                    <!-- Next Question Action Button -->
+                    <div class="flex justify-end pt-2">
+                        <button id="next-btn" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg flex items-center space-x-2 transition-all">
+                            <span>Келесі сұрақ</span>
+                            <i class="fa-solid fa-arrow-right text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RESULT SCREEN -->
+            <div id="result-screen" class="hidden glass-panel rounded-2xl p-6 md:p-10 text-center space-y-6 shadow-2xl">
+                <div id="result-icon-container" class="w-20 h-20 bg-blue-600/20 text-blue-400 rounded-3xl flex items-center justify-center mx-auto border border-blue-500/30 text-3xl">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <div class="space-y-1">
+                    <h2 class="text-2xl md:text-3xl font-bold text-white">Викторина аяқталды!</h2>
+                    <p id="result-badge-text" class="text-blue-400 text-sm font-medium">Керемет нәтиже!</p>
+                </div>
+
+                <!-- Stats summary grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto py-2">
+                    <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl text-center">
+                        <span class="text-xs text-slate-400 block">Соңғы ұпай</span>
+                        <span id="final-score" class="text-xl md:text-2xl font-bold text-emerald-400">0</span>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl text-center">
+                        <span class="text-xs text-slate-400 block">Дұрыс жауап</span>
+                        <span id="final-correct" class="text-xl md:text-2xl font-bold text-blue-400">0/20</span>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl text-center">
+                        <span class="text-xs text-slate-400 block">Дәлдік</span>
+                        <span id="final-accuracy" class="text-xl md:text-2xl font-bold text-amber-400">0%</span>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl text-center">
+                        <span class="text-xs text-slate-400 block">Уақыт</span>
+                        <span id="final-time" class="text-xl md:text-2xl font-bold text-slate-200">00:00</span>
+                    </div>
+                </div>
+
+                <!-- Review recommendation message -->
+                <p id="result-feedback-message" class="text-xs md:text-sm text-slate-300 max-w-md mx-auto leading-relaxed bg-slate-800/40 border border-slate-700/40 p-4 rounded-xl">
+                    <!-- Dynamic message inserted by JavaScript -->
+                </p>
+
+                <div class="pt-2">
+                    <button id="restart-quiz-btn" class="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center space-x-2 mx-auto">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Викторинаны кайта өту</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 border-t border-slate-800/60 text-center text-xs text-slate-500">
+        <p>Арифметикалық прогрессия викторинасы • Формулалар: \(a_n = a_1 + (n-1)d\) және \(S_n = \frac{a_1 + a_n}{2} \cdot n\)</p>
+    </footer>
+
+    <!-- JavaScript Quiz Logic -->
+    <script>
+        // 20 Carefully crafted Arithmetic Progression questions (Basic formulas + Logical word problems)
+        const questionsData = [
+            {
+                category: "Бастапқы мүшесі және айырымы",
+                text: "Арифметикалық прогрессияда \\(a_1 = 5\\) және \\(d = 3\\) берілген. Осы прогрессияның 10-шы мүшесін (\\(a_{10}\\)) табыңыз.",
+                correctIndex: 0,
+                options: [
+                    "a_{10} = 32",
+                    "a_{10} = 35",
+                    "a_{10} = 29",
+                    "a_{10} = 30"
+                ],
+                formula: "a_n = a_1 + (n-1)d",
+                calculation: "a_{10} = 5 + (10 - 1) \\cdot 3 = 5 + 9 \\cdot 3 = 5 + 27 = 32",
+                explanation: "10-шы мүшені тапқанда айырым d санға (n-1) = 9 рет көбейтіледі. 35 жауабы n=10 деп қателескенде шығады."
+            },
+            {
+                category: "Алғашқы мүшелер қосындысы",
+                text: "Арифметикалық прогрессияның алғашқы мүшесі \\(a_1 = 2\\), ал айырымы \\(d = 4\\). Алғашқы 8 мүшесінің қосындысын (\\(S_8\\)) табыңыз.",
+                correctIndex: 1,
+                options: [
+                    "S_8 = 256",
+                    "S_8 = 128",
+                    "S_8 = 130",
+                    "S_8 = 144"
+                ],
+                formula: "S_n = \\frac{2a_1 + (n-1)d}{2} \\cdot n",
+                calculation: "S_8 = \\frac{2(2) + (8-1)4}{2} \\cdot 8 = \\frac{4 + 28}{2} \\cdot 8 = 16 \\cdot 8 = 128",
+                explanation: "Формулада 2-ге бөлуді ұмытпау керек! 256 жауабы бөлусіз есептегенде алынатын жиі кездесетін қате."
+            },
+            {
+                category: "Логикалық есеп (Театр орындары)",
+                text: "Театр залында бірінші қатарда 12 орын бар. Әрбір кейінгі қатарда алдыңғыдан 2 орынға артық. 15-ші қатарда қанша орын бар?",
+                correctIndex: 2,
+                options: [
+                    "42 \\text{ орын}",
+                    "42 \\text{ орын}",
+                    "40 \\text{ орын}",
+                    "38 \\text{ орын}"
+                ],
+                formula: "a_{15} = a_1 + (15-1)d",
+                calculation: "a_1 = 12, \\, d = 2, \\, n = 15 \\implies a_{15} = 12 + 14 \\cdot 2 = 12 + 28 = 40",
+                explanation: "Бірінші қатар a₁ = 12, айырым d = 2. 15-ші қатарда n-1 = 14 рет қосылады: 12 + 28 = 40."
+            },
+            {
+                category: "Айырымды табу (d)",
+                text: "Арифметикалық прогрессияда \\(a_1 = 7\\) және \\(a_6 = 27\\). Прогрессияның айырымын (\\(d\\)) табыңыз.",
+                correctIndex: 0,
+                options: [
+                    "d = 4",
+                    "d = 5",
+                    "d = 3.33",
+                    "d = 3"
+                ],
+                formula: "a_6 = a_1 + 5d",
+                calculation: "27 = 7 + 5d \\implies 5d = 20 \\implies d = 4",
+                explanation: "a₆ мен a₁ арасында 5 қадам бар (6-1=5). Қашықтық: 27 - 7 = 20. Олай болса d = 20 / 5 = 4."
+            },
+            {
+                category: "Логикалық есеп (Жинақ ақша)",
+                text: "Арман бірінші айда 1000 тенге жинады. Кейінгі әр айда алдыңғы айдан 500 тенгеге артық салып отырды. 12 айда ол барлығы қанша тенге жинайды?",
+                correctIndex: 3,
+                options: [
+                    "45\\,000 \\text{ ₸}",
+                    "42\\,000 \\text{ ₸}",
+                    "39\\,500 \\text{ ₸}",
+                    "45\\,000 \\text{ ₸}"
+                ],
+                formula: "S_{12} = \\frac{2a_1 + 11d}{2} \\cdot 12",
+                calculation: "S_{12} = \\frac{2(1000) + 11(500)}{2} \\cdot 12 = \\frac{2000 + 5500}{2} \\cdot 12 = 7500 \\cdot 6 = 45\\,000",
+                explanation: "12 ай ішіндегі БАРЛЫҚ ақша қосындыны білдіреді (S₁₂). a₁=1000, d=500. S₁₂ = 7500 * 6 = 45 000 тг."
+            },
+            {
+                category: "Кері есеп (Мүше санын табу)",
+                text: "Арифметикалық прогрессия берілген: \\(3, 7, 11, 15, \\dots\\). Соңғы мүшесі \\(79\\)-ға тең болса, бұл прогрессияда неше мүше бар?",
+                correctIndex: 1,
+                options: [
+                    "n = 19",
+                    "n = 20",
+                    "n = 21",
+                    "n = 18"
+                ],
+                formula: "a_n = a_1 + (n-1)d",
+                calculation: "a_1 = 3, \\, d = 4. \\quad 79 = 3 + (n-1)4 \\implies 76 = 4(n-1) \\implies n-1 = 19 \\implies n = 20",
+                explanation: "79-дан 3-ті азайтып 76 аламыз. 76-ны d=4-ке бөлгенде 19 шығады. (n-1)=19 болғандықтан, n = 20 мүше."
+            },
+            {
+                category: "Логикалық есеп (Сатыдағы ағаштар)",
+                text: "Бағбан бірінші қатарға 5 түп ағаш отырғызды, ал кейінгі әр қатарға 3 түптен артық отырғызды. Ол 10 қатарға барлығы қанша ағаш отырғызды?",
+                correctIndex: 0,
+                options: [
+                    "S_{10} = 185",
+                    "S_{10} = 370",
+                    "S_{10} = 175",
+                    "S_{10} = 160"
+                ],
+                formula: "S_{10} = \\frac{2a_1 + 9d}{2} \\cdot 10",
+                calculation: "S_{10} = \\frac{2(5) + 9(3)}{2} \\cdot 10 = (10 + 27) \\cdot 5 = 37 \\cdot 5 = 185",
+                explanation: "a₁ = 5, d = 3. S₁₀ = (10 + 27)/2 * 10 = 37 * 5 = 185 ағаш."
+            },
+            {
+                category: "Теріс айырым (Кемімелі)",
+                text: "Арифметикалық прогрессияда \\(a_1 = 50\\) және \\(d = -4\\). Осы прогрессияның 12-ші мүшесін табыңыз.",
+                correctIndex: 2,
+                options: [
+                    "a_{12} = 8",
+                    "a_{12} = -6",
+                    "a_{12} = 6",
+                    "a_{12} = 4"
+                ],
+                formula: "a_{12} = a_1 + 11d",
+                calculation: "a_{12} = 50 + 11(-4) = 50 - 44 = 6",
+                explanation: "Айырымы терiс (d = -4) болғандықтан сан кеміп отырады. 50 - 44 = 6."
+            },
+            {
+                category: "Логикалық есеп (Тас пирамидасы)",
+                text: "Балалар кубиктерден пирамида салып жатыр. Ең үстіңгі қабатта 1 кубик, екіншіде 3 кубик, үшіншіде 5 кубик т.с.с. 10 қабатты пирамида құрастыру үшін барлығы неше кубик керек?",
+                correctIndex: 0,
+                options: [
+                    "S_{10} = 100",
+                    "S_{10} = 90",
+                    "S_{10} = 110",
+                    "S_{10} = 81"
+                ],
+                formula: "S_n = n^2 \\quad (Тақ \\, сандар \\, қосындысы)",
+                calculation: "a_1 = 1, \\, d = 2. \\quad S_{10} = \\frac{2(1) + 9(2)}{2} \\cdot 10 = 10 \\cdot 10 = 100",
+                explanation: "Алғашқы n тақ табиғи санның қосындысы әрдайым n²-қа тең. 10 қабат үшін: 10² = 100 кубик."
+            },
+            {
+                category: "Формула негіздері",
+                text: "Арифметикалық прогрессия берілген: \\(a_3 = 11\\) және \\(a_7 = 23\\). Прогрессияның бірінші мүшесі (\\(a_1\\)) неге тең?",
+                correctIndex: 3,
+                options: [
+                    "a_1 = 2",
+                    "a_1 = 3",
+                    "a_1 = 4",
+                    "a_1 = 5"
+                ],
+                formula: "a_7 - a_3 = 4d \\implies d = \\frac{23 - 11}{4} = 3",
+                calculation: "4d = 12 \\implies d = 3. \\quad a_3 = a_1 + 2d \\implies 11 = a_1 + 6 \\implies a_1 = 5",
+                explanation: "a₇ мен a₃ айырмасы 4d болады: 23 - 11 = 12. d = 3. a₁ = a₃ - 2d = 11 - 6 = 5."
+            },
+            {
+                category: "Логикалық есеп (Еркін түсу заңы)",
+                text: "Физикалық тәжірибеде дене бірінші секундта 5 метр жүріп өтті, ал кейінгі әр секундта алдыңғыдан 10 метрге артық жол жүрді. 6 секунд ішінде дене барлығы қанша метр құлайды?",
+                correctIndex: 1,
+                options: [
+                    "S_6 = 360 \\text{ м}",
+                    "S_6 = 180 \\text{ м}",
+                    "S_6 = 55 \\text{ м}",
+                    "S_6 = 210 \\text{ м}"
+                ],
+                formula: "S_6 = \\frac{2a_1 + 5d}{2} \\cdot 6",
+                calculation: "a_1 = 5, \\, d = 10 \\implies S_6 = \\frac{2(5) + 5(10)}{2} \\cdot 6 = \\frac{60}{2} \\cdot 6 = 180 \\text{ м}",
+                explanation: "a₁ = 5, d = 10, n = 6. S₆ = (10 + 50)/2 * 6 = 30 * 6 = 180 метр."
+            },
+            {
+                category: "Қосынды берілгендегі n-ді табу",
+                text: "Арифметикалық прогрессияда \\(a_1 = 1\\) және \\(d = 2\\). Алғашқы неше мүшесінің қосындысы \\(144\\)-ке тең болады?",
+                correctIndex: 2,
+                options: [
+                    "n = 14",
+                    "n = 10",
+                    "n = 12",
+                    "n = 16"
+                ],
+                formula: "S_n = n^2 = 144",
+                calculation: "a_1 = 1, \\, d = 2 \\implies S_n = n^2. \\quad n^2 = 144 \\implies n = 12",
+                explanation: "1-ден басталатын тақ сандардың қосындысы S_n = n² формуласын береді. n² = 144 ⟹ n = 12."
+            },
+            {
+                category: "Логикалық есеп (Жүйелі үнемдеу)",
+                text: "Спортшы марафонға дайындалып, 1-күні 4 км жүгірді. Әр күн сайын арақашықтықты 1.5 км-ге арттырып отырды. Нешінші күні ол дәл 19 км жүгіреді?",
+                correctIndex: 0,
+                options: [
+                    "11-\\text{ші күні}",
+                    "10-\\text{шы күні}",
+                    "12-\\text{ші күні}",
+                    "13-\\text{ші күні}"
+                ],
+                formula: "a_n = a_1 + (n-1)d",
+                calculation: "19 = 4 + (n-1)1.5 \\implies 15 = 1.5(n-1) \\implies n-1 = 10 \\implies n = 11",
+                explanation: "19 - 4 = 15 км қосылуы керек. 15 / 1.5 = 10 күн арттыру. Бастапқы күнмен қосқанда 11-ші күн."
+            },
+            {
+                category: "Прогрессияның орта арифметикалық қасиеті",
+                text: "Арифметикалық прогрессияның үш тізбектес мүшесі берілген: \\(x - 1\\), \\(13\\), және \\(2x + 3\\). \\(x\\)-тің мәнін табыңыз.",
+                correctIndex: 1,
+                options: [
+                    "x = 7",
+                    "x = 8",
+                    "x = 9",
+                    "x = 6"
+                ],
+                formula: "a_k = \\frac{a_{k-1} + a_{k+1}}{2}",
+                calculation: "13 = \\frac{(x-1) + (2x+3)}{2} \\implies 26 = 3x + 2 \\implies 3x = 24 \\implies x = 8",
+                explanation: "Ортаңғы мүше шеткі мүшелердің орта арифметикалық мәніне тең: (x-1 + 2x+3)/2 = 13 ⟹ 3x+2 = 26 ⟹ x = 8."
+            },
+            {
+                category: "Теріс мүшелер қосындысы",
+                text: "Арифметикалық прогрессияда \\(a_1 = -15\\) және \\(d = 3\\). Осы прогрессияның алғашқы 10 мүшесінің қосындысын (\\(S_{10}\\)) табыңыз.",
+                correctIndex: 3,
+                options: [
+                    "S_{10} = -30",
+                    "S_{10} = 0",
+                    "S_{10} = 30",
+                    "S_{10} = -15"
+                ],
+                formula: "S_{10} = \\frac{2a_1 + 9d}{2} \\cdot 10",
+                calculation: "S_{10} = \\frac{2(-15) + 9(3)}{2} \\cdot 10 = \\frac{-30 + 27}{2} \\cdot 10 = -3 \\cdot 5 = -15",
+                explanation: "S₁₀ = (-30 + 27)/2 * 10 = -3 * 5 = -15."
+            },
+            {
+                category: "Логикалық есеп (Сағат соғуы)",
+                text: "Қабырға сағаты әр сағат сайын уақыт санына сәйкес соғады (мысалы, сағат 3-те 3 рет, 5-те 5 рет). Тәулігіне (24 сағатта) сағат барлығы неше рет соғады?",
+                correctIndex: 0,
+                options: [
+                    "156 \\text{ рет}",
+                    "78 \\text{ рет}",
+                    "300 \\text{ рет}",
+                    "144 \\text{ рет}"
+                ],
+                formula: "S_{12} \\cdot 2 \\quad (1-ден \\, 12-ге \\, дейінгі \\, қосынды \\, 2 \\, рет)",
+                calculation: "S_{12} = \\frac{1 + 12}{2} \\cdot 12 = 78. \\quad Тәулігіне: 78 \\cdot 2 = 156 \\text{ рет}",
+                explanation: "1-ден 12 сағатқа дейінгі қосынды: S₁₂ = (1+12)/2 * 12 = 78. Тәулікте екі 12 сағаттық цикл бар: 78 * 2 = 156 рет."
+            },
+            {
+                category: "Тізбекті табу",
+                text: "Арифметикалық прогрессияда \\(S_n = 2n^2 + 3n\\) формуласымен берілген. Осы прогрессияның екінші мүшесін (\\(a_2\\)) табыңыз.",
+                correctIndex: 2,
+                options: [
+                    "a_2 = 14",
+                    "a_2 = 5",
+                    "a_2 = 9",
+                    "a_2 = 7"
+                ],
+                formula: "a_2 = S_2 - S_1",
+                calculation: "S_1 = 2(1)^2 + 3(1) = 5. \\quad S_2 = 2(2)^2 + 3(2) = 8 + 6 = 14. \\quad a_2 = 14 - 5 = 9",
+                explanation: "S₁ = a₁ = 5. S₂ = a₁ + a₂ = 14. Екінші мүше: a₂ = S₂ - S₁ = 14 - 5 = 9."
+            },
+            {
+                category: "Логикалық есеп (Арифметикалық орта сұрағы)",
+                text: "Арифметикалық прогрессия құрайтын 5 тізбектес санның қосындысы 100-ге тең. Осы сандардың ортаңғысы (үшіншісі, \\(a_3\\)) неге тең?",
+                correctIndex: 1,
+                options: [
+                    "a_3 = 25",
+                    "a_3 = 20",
+                    "a_3 = 15",
+                    "a_3 = 30"
+                ],
+                formula: "S_5 = 5 \\cdot a_3",
+                calculation: "S_5 = a_1 + a_2 + a_3 + a_4 + a_5 = 5 \\cdot a_3 = 100 \\implies a_3 = 20",
+                explanation: "Тақ санды мүшелер қосындысында ортаңғы мүше әрдайым S_n / n-ге тең болады. 100 / 5 = 20."
+            },
+            {
+                category: "Прогрессия айырымын белгілеу",
+                text: "Егер \\(a_1 = 10\\) және \\(S_5 = 100\\) болса, прогрессияның айырымы (\\(d\\)) неге тең?",
+                correctIndex: 0,
+                options: [
+                    "d = 5",
+                    "d = 4",
+                    "d = 6",
+                    "d = 2.5"
+                ],
+                formula: "S_5 = \\frac{2a_1 + 4d}{2} \\cdot 5",
+                calculation: "100 = (20 + 4d) \\cdot 2.5 \\implies 20 + 4d = 40 \\implies 4d = 20 \\implies d = 5",
+                explanation: "100 = (20 + 4d)/2 * 5 ⟹ (10 + 2d) * 5 = 100 ⟹ 10 + 2d = 20 ⟹ 2d = 10 ⟹ d = 5."
+            },
+            {
+                category: "Логикалық есеп (Ағаш бөлшектері)",
+                text: "Көпбұрыштың ішкі бұрыштары арифметикалық прогрессия құрайды. Ең кіші бұрышы \\(100^\n\\circ\\), ал айырымы \\(10^\\circ\\). Бұл көпбұрыштың бұрыштар саны нешеу?",
+                correctIndex: 2,
+                options: [
+                    "n = 6",
+                    "n = 7",
+                    "n = 8",
+                    "n = 5"
+                ],
+                formula: "S_n = (n-2) \\cdot 180^\\circ",
+                calculation: "\\frac{2(100) + (n-1)10}{2} \\cdot n = (n-2)180 \\implies (195 + 5n)n = 180n - 360 \\implies n = 8",
+                explanation: "Көпбұрыштың ішкі бұрыштар қосындысы S_n = (n-2)*180°. Прогрессия формуласын теңестіргенде n = 8 бұрыш шығады."
+            }
+        ];
+
+        // State variables
+        let currentIndex = 0;
+        let score = 0;
+        let correctCount = 0;
+        let answered = false;
+        let timerSeconds = 0;
+        let timerInterval = null;
+
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultScreen = document.getElementById('result-screen');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const restartQuizBtn = document.getElementById('restart-quiz-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        const currentQuestionNum = document.getElementById('current-question-num');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreDisplay = document.getElementById('score-display');
+        const timerDisplay = document.getElementById('timer');
+        const questionCategory = document.getElementById('question-category');
+        const equationDisplay = document.getElementById('equation-display');
+        const optionsGrid = document.getElementById('options-grid');
+
+        const explanationBox = document.getElementById('explanation-box');
+        const feedbackBadge = document.getElementById('feedback-badge');
+        const stepFormula = document.getElementById('step-formula');
+        const stepCalculation = document.getElementById('step-calculation');
+        const stepExplanation = document.getElementById('step-explanation');
+        const stepRoots = document.getElementById('step-roots');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Results elements
+        const finalScore = document.getElementById('final-score');
+        const finalCorrect = document.getElementById('final-correct');
+        const finalAccuracy = document.getElementById('final-accuracy');
+        const finalTime = document.getElementById('final-time');
+        const resultBadgeText = document.getElementById('result-badge-text');
+        const resultFeedbackMessage = document.getElementById('result-feedback-message');
+        const resultIconContainer = document.getElementById('result-icon-container');
+
+        // Event Listeners
+        startQuizBtn.addEventListener('click', startQuiz);
+        restartQuizBtn.addEventListener('click', startQuiz);
+        resetBtn.addEventListener('click', resetQuiz);
+        nextBtn.addEventListener('click', goToNextQuestion);
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerSeconds = 0;
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${mins}:${secs}`;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function resetQuiz() {
+            stopTimer();
+            startScreen.classList.remove('hidden');
+            quizContainer.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            timerDisplay.textContent = "00:00";
+        }
+
+        function startQuiz() {
+            currentIndex = 0;
+            score = 0;
+            correctCount = 0;
+            scoreDisplay.textContent = score;
+
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+
+            startTimer();
+            loadQuestion(currentIndex);
+        }
+
+        function loadQuestion(index) {
+            answered = false;
+            explanationBox.classList.add('hidden');
+
+            const q = questionsData[index];
+            currentQuestionNum.textContent = index + 1;
+            
+            // Progress Bar update
+            const progressPercent = ((index + 1) / questionsData.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            questionCategory.textContent = q.category;
+            equationDisplay.innerHTML = q.text;
+
+            // Render option buttons
+            optionsGrid.innerHTML = '';
+            const labels = ['A', 'B', 'C', 'D'];
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-option w-full glass-panel hover:bg-slate-800 border border-slate-700/80 p-4 rounded-xl text-left flex items-center justify-between text-slate-200 group transition-all`;
+                btn.onclick = () => selectOption(idx);
+
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 font-bold text-xs flex items-center justify-center text-slate-400 group-hover:text-blue-400 group-hover:border-blue-500/50 transition-colors">
+                            ${labels[idx]}
+                        </span>
+                        <span class="font-mono text-sm sm:text-base">\\[${opt}\\]</span>
+                    </div>
+                    <i class="fa-regular fa-circle text-slate-600 group-hover:text-blue-400 transition-colors"></i>
+                `;
+                optionsGrid.appendChild(btn);
+            });
+
+            // Typeset MathJax expressions
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function selectOption(selectedIndex) {
+            if (answered) return;
+            answered = true;
+
+            const q = questionsData[currentIndex];
+            const buttons = optionsGrid.querySelectorAll('button');
+
+            // Disable all buttons
+            buttons.forEach(b => b.disabled = true);
+
+            const isCorrect = (selectedIndex === q.correctIndex);
+
+            if (isCorrect) {
+                score += 1;
+                correctCount += 1;
+                buttons[selectedIndex].classList.remove('border-slate-700/80');
+                buttons[selectedIndex].classList.add('bg-emerald-950/60', 'border-emerald-500', 'text-emerald-200');
+                buttons[selectedIndex].querySelector('i').className = 'fa-solid fa-circle-check text-emerald-400 text-lg';
+
+                feedbackBadge.className = 'flex items-center space-x-2 font-bold text-lg text-emerald-400';
+                feedbackBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Дұрыс! (+1 ұпай)</span>`;
+                explanationBox.className = 'glass-panel rounded-2xl p-6 border-l-4 border-l-emerald-500 space-y-4';
+            } else {
+                score -= 1;
+                buttons[selectedIndex].classList.remove('border-slate-700/80');
+                buttons[selectedIndex].classList.add('bg-rose-950/60', 'border-rose-500', 'text-rose-200');
+                buttons[selectedIndex].querySelector('i').className = 'fa-solid fa-circle-xmark text-rose-400 text-lg';
+
+                // Highlight correct one
+                buttons[q.correctIndex].classList.remove('border-slate-700/80');
+                buttons[q.correctIndex].classList.add('bg-emerald-950/40', 'border-emerald-500/60', 'text-emerald-300');
+
+                feedbackBadge.className = 'flex items-center space-x-2 font-bold text-lg text-rose-400';
+                feedbackBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>Қате! (-1 ұпай)</span>`;
+                explanationBox.className = 'glass-panel rounded-2xl p-6 border-l-4 border-l-rose-500 space-y-4';
+            }
+
+            scoreDisplay.textContent = score;
+
+            // Step by step breakdown
+            stepFormula.innerHTML = `1) Негізгі формула: \\(${q.formula}\\)`;
+            stepCalculation.innerHTML = `2) Есептеу барысы: \\(${q.calculation}\\)`;
+            stepExplanation.innerHTML = `3) <b>Түсіндірме:</b> ${q.explanation}`;
+            stepRoots.innerHTML = `Дұрыс жауап: \\(${q.options[q.correctIndex]}\\)`;
+
+            explanationBox.classList.remove('hidden');
+
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function goToNextQuestion() {
+            currentIndex++;
+            if (currentIndex < questionsData.length) {
+                loadQuestion(currentIndex);
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            stopTimer();
+
+            quizContainer.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            const accuracy = Math.round((correctCount / questionsData.length) * 100);
+
+            finalScore.textContent = score;
+            finalCorrect.textContent = `${correctCount}/20`;
+            finalAccuracy.textContent = `${accuracy}%`;
+            
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            finalTime.textContent = `${mins}:${secs}`;
+
+            // Customize badge and feedback text based on performance
+            if (score >= 16) {
+                resultBadgeText.textContent = "Өте тамаша! Математика шеберісің! 🌟";
+                resultIconContainer.className = "w-20 h-20 bg-emerald-600/20 text-emerald-400 rounded-3xl flex items-center justify-center mx-auto border border-emerald-500/30 text-3xl";
+                resultIconContainer.innerHTML = '<i class="fa-solid fa-award"></i>';
+                resultFeedbackMessage.textContent = "Сіз арифметикалық прогрессия формулалары мен логикалық есептерін жоғары деңгейде меңгергенсіз!";
+            } else if (score >= 8) {
+                resultBadgeText.textContent = "Жақсы нәтиже! 👍";
+                resultIconContainer.className = "w-20 h-20 bg-blue-600/20 text-blue-400 rounded-3xl flex items-center justify-center mx-auto border border-blue-500/30 text-3xl";
+                resultIconContainer.innerHTML = '<i class="fa-solid fa-thumbs-up"></i>';
+                resultFeedbackMessage.textContent = "Жақсы көрсеткіш! Қосынды табу мен (n-1) мүшесін есептеуде кейбір ұсақ қателіктер болды. Сұрақтардың түсіндірмесін тағы бір рет қарап шығыңыз.";
+            } else {
+                resultBadgeText.textContent = "Әлі де іздену керек 📚";
+                resultIconContainer.className = "w-20 h-20 bg-amber-600/20 text-amber-400 rounded-3xl flex items-center justify-center mx-auto border border-amber-500/30 text-3xl";
+                resultIconContainer.innerHTML = '<i class="fa-solid fa-book-open"></i>';
+                resultFeedbackMessage.textContent = "Арифметикалық прогрессияның a_n және S_n формулаларын қайталап алуды ұсынамыз. Әсіресе d айырымы мен мүше санында мұқият болыңыз.";
+            }
+        }
+    </script>
+</body>
+</html>
